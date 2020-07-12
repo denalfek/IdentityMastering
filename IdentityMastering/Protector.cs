@@ -13,8 +13,7 @@ namespace IdentityMastering
         private const int _128BitKey = 16;
 
         private static readonly Aes _aes = Aes.Create();
-        private static readonly byte[] _salt =
-            Encoding.Unicode.GetBytes(_rawSalt);
+        private static readonly byte[] _salt = GetSaltBytes();
 
         public static string Encrypt(string plainText, string password)
         {
@@ -52,6 +51,29 @@ namespace IdentityMastering
             plainBytes = memoryStream.ToArray();
             return Encoding.Unicode.GetString(plainBytes);
         }
+
+        // https://docs.microsoft.com/ru-ru/dotnet/api/system.security.cryptography.rfc2898derivebytes?view=netcore-3.1
+        public static string TestEncryptionAndDecryptionMethods(string plainText, string password)
+        {
+            var bufferedText = new string(plainText);
+            var encryptedText = Encrypt(plainText, password);
+            var decryptedText = Decrypt(encryptedText, password);
+
+            try
+            {
+                using var rngCsp = new RNGCryptoServiceProvider();
+                var key = new Rfc2898DeriveBytes(password, _salt);
+            }
+        }
+
+        private static byte[] GetSaltBytes()
+        {
+            using var rngCsp = new RNGCryptoServiceProvider();
+            var saltBytes = new byte[8];
+            rngCsp.GetBytes(saltBytes);
+            return saltBytes;
+        }
+            
 
         // private static string Pocess
     }
